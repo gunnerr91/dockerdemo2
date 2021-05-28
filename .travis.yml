@@ -1,0 +1,20 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t muki20/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true muki20/react-test npm test
+
+after_success:
+  - docker build -t muki20/multi-client ./client
+  - docker build -t muki20/multi-nginx ./nginx
+  - docker build -t muki20/multi-server ./server
+  - docker build -t muki20/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push muki20/multi-client
+  - docker push muki20/multi-nginx
+  - docker push muki20/multi-server
+  - docker push muki20/multi-worker
